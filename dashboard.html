@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alpha Data | Executive Dashboard 2026</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Segoe UI',sans-serif;background:#0d1b2a;color:#e8f4fd;min-height:100vh}
+  header{background:#1a2940;padding:14px 28px;display:flex;align-items:center;
+         justify-content:space-between;border-bottom:1px solid #2e4a63;position:sticky;top:0;z-index:100}
+  header h1{font-size:18px;font-weight:700;letter-spacing:.5px}
+  header .meta{font-size:12px;color:#7a9bb5}
+  .hdr-right{display:flex;align-items:center;gap:14px}
+  .btn-refresh{background:#1e6db5;color:#fff;border:none;padding:8px 16px;
+               border-radius:6px;cursor:pointer;font-size:13px;font-weight:600}
+  .btn-refresh:hover{background:#2980d4}
+  .btn-logout{color:#7a9bb5;text-decoration:none;font-size:13px}
+  .btn-logout:hover{color:#e8f4fd}
+  main{padding:24px 28px;max-width:1400px;margin:0 auto}
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+  .card{background:#1a2940;border-radius:10px;padding:20px;border:1px solid #2e4a63}
+  .card .lbl{font-size:11px;color:#7a9bb5;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+  .card .val{font-size:24px;font-weight:700;color:#e8f4fd}
+  .card .sub{font-size:12px;color:#7a9bb5;margin-top:4px}
+  .card.green .val{color:#34d399}
+  .card.red   .val{color:#f87171}
+  .card.blue  .val{color:#60a5fa}
+  .sec-title{font-size:14px;font-weight:700;color:#a0bdd0;text-transform:uppercase;
+             letter-spacing:.8px;margin-bottom:14px}
+  .radio-bar{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+  .radio-bar label{cursor:pointer;padding:8px 18px;border-radius:20px;
+                   background:#1a2940;border:1px solid #2e4a63;font-size:13px;
+                   color:#a0bdd0;transition:.2s}
+  .radio-bar input[type=radio]{display:none}
+  .radio-bar input[type=radio]:checked + label{background:#1e6db5;border-color:#1e6db5;color:#fff}
+  .am-table{background:#1a2940;border-radius:10px;overflow:hidden;border:1px solid #2e4a63;margin-bottom:12px}
+  .am-table table{width:100%;border-collapse:collapse}
+  .am-table th{background:#0f2035;padding:12px 16px;text-align:left;font-size:12px;
+               color:#7a9bb5;text-transform:uppercase;letter-spacing:.6px}
+  .am-table td{padding:12px 16px;border-top:1px solid #1e3550;font-size:13px}
+  .am-table tr:hover td{background:#1e3550;cursor:pointer}
+  .am-table .name-cell{font-weight:600;color:#60a5fa}
+  .pct-bar{background:#0d1b2a;border-radius:3px;height:6px;overflow:hidden;margin-top:4px}
+  .pct-fill{height:100%;border-radius:3px;background:#1e6db5}
+  .pct-fill.green{background:#34d399}
+  .pct-fill.red{background:#f87171}
+  .portlet{display:none;background:#0f2035;border:1px solid #1e6db5;border-radius:10px;
+           margin-bottom:28px;padding:20px}
+  .portlet.active{display:block}
+  .portlet h3{font-size:14px;font-weight:700;color:#60a5fa;margin-bottom:14px}
+  .portlet table{width:100%;border-collapse:collapse}
+  .portlet th{font-size:11px;color:#7a9bb5;text-transform:uppercase;padding:6px 10px;text-align:left}
+  .portlet td{padding:8px 10px;border-top:1px solid #1e3550;font-size:13px}
+  .portlet .total-row td{font-weight:700;color:#60a5fa;border-top:2px solid #1e6db5}
+  /* Pipeline */
+  .pipeline{display:grid;gap:16px;margin-bottom:12px}
+  .pipeline.cols-5{grid-template-columns:repeat(5,1fr)}
+  .pipeline.cols-1{grid-template-columns:1fr;max-width:340px}
+  .pipe-card{background:#1a2940;border-radius:10px;padding:18px;border:1px solid #2e4a63}
+  .pipe-card .am-name{font-size:13px;font-weight:700;color:#60a5fa;margin-bottom:12px}
+  .pipe-row{margin-bottom:10px}
+  .pipe-row .pipe-lbl{font-size:11px;color:#7a9bb5;display:flex;justify-content:space-between;
+                      margin-bottom:4px;cursor:pointer;padding:4px 6px;border-radius:4px;transition:.15s}
+  .pipe-row .pipe-lbl:hover{background:#1e3550;color:#e8f4fd}
+  .pipe-row .pipe-lbl.active-lbl{background:#1e3550;color:#fff;font-weight:700}
+  .pipe-bar{background:#0d1b2a;border-radius:3px;height:8px;overflow:hidden}
+  .pipe-fill{height:100%;border-radius:3px}
+  .p40{background:#f59e0b}.p50{background:#3b82f6}.p80{background:#10b981}
+  .pipe-portlet{display:none;background:#0f2035;border:1px solid #2e4a63;border-radius:10px;
+                margin-bottom:28px;padding:20px}
+  .pipe-portlet.active{display:block}
+  .pipe-portlet h3{font-size:14px;font-weight:700;margin-bottom:14px}
+  .badge{display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;
+         font-weight:700;margin-left:8px;vertical-align:middle}
+  .badge-40{background:#92400e;color:#fbbf24}
+  .badge-50{background:#1e3a8a;color:#93c5fd}
+  .badge-80{background:#064e3b;color:#6ee7b7}
+  .pipe-portlet table{width:100%;border-collapse:collapse}
+  .pipe-portlet th{font-size:11px;color:#7a9bb5;text-transform:uppercase;padding:6px 10px;text-align:left}
+  .pipe-portlet td{padding:8px 10px;border-top:1px solid #1e3550;font-size:13px}
+  .pipe-portlet .total-row td{font-weight:700;border-top:2px solid #2e4a63}
+  .warn-box{background:#3d1a1a;border:1px solid #7f1d1d;border-radius:8px;
+            padding:14px 18px;margin-bottom:20px;font-size:13px;color:#fca5a5}
+  .warn-box ul{margin-top:6px;padding-left:18px}
+  .warn-box li{margin-top:4px}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>ALPHA DATA &mdash; Executive Dashboard 2026</h1>
+    <div class="meta" id="lastUpdated">Loading&hellip;</div>
+  </div>
+  <div class="hdr-right">
+    <button class="btn-refresh" onclick="refreshData()">&#8635; Refresh Data</button>
+    <a href="/logout" class="btn-logout">Sign out</a>
+  </div>
+</header>
+
+<main>
+  <div id="warnBox"></div>
+  <div class="cards" id="summaryCards"></div>
+
+  <div class="sec-title">Account Manager Performance</div>
+  <div class="radio-bar" id="radioBar"></div>
+  <div class="am-table" id="amTableWrap"></div>
+  <div class="portlet" id="portlet"></div>
+
+  <div class="sec-title" style="margin-top:8px">Opportunity Pipeline</div>
+  <div class="pipeline" id="pipeline"></div>
+  <div class="pipe-portlet" id="pipePortlet"></div>
+</main>
+
+<script>
+var D = {{ data | safe }};
+var selAM = "Overall";
+var selRow = null;
+var selPipe = null;
+
+function fmt(n){
+  if(n==null||n===undefined) return "AED 0";
+  return "AED "+Number(n).toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:0});
+}
+
+function renderAll(){
+  renderCards(); renderRadio(); renderTable(); renderPipeline(); renderWarnings();
+  document.getElementById("lastUpdated").textContent="Data as of: "+D.last_updated;
+}
+
+function renderWarnings(){
+  var wb=document.getElementById("warnBox");
+  if(!D.errors||D.errors.length===0){wb.innerHTML="";return;}
+  var li=D.errors.map(function(e){return "<li>"+e+"</li>";}).join("");
+  wb.innerHTML='<div class="warn-box"><strong>&#9888; Warning &mdash; some files could not be read:</strong><ul>'+li+'</ul></div>';
+}
+
+function renderCards(){
+  var target=D.total_target, actual=D.total_actual_2026;
+  var ach=target?actual/target*100:0, gap=target-actual;
+  var cls=ach>=100?"green":ach>=70?"blue":"red";
+  document.getElementById("summaryCards").innerHTML=
+    card("Topline Target 2026",fmt(target),"Overall target","")+
+    card("Actual Revenue 2026",fmt(actual),"Booked this year","blue")+
+    card("Achievement %",ach.toFixed(1)+"%","vs Target",cls)+
+    card("Gap to Target",fmt(gap),"Remaining",gap<=0?"green":"red");
+}
+function card(lbl,val,sub,cls){
+  return '<div class="card '+cls+'"><div class="lbl">'+lbl+'</div><div class="val">'+val+'</div><div class="sub">'+sub+'</div></div>';
+}
+
+function renderRadio(){
+  var ams=["Overall"].concat(D.am_labels);
+  var letters=["A","B","C","D","E","F"];
+  var html=ams.map(function(am,i){
+    var id="r"+i,chk=am===selAM?"checked":"";
+    return '<input type="radio" name="amfilter" id="'+id+'" '+chk+' onchange="setAM(\''+am+'\')"><label for="'+id+'">'+letters[i]+'&nbsp;&nbsp;'+am+'</label>';
+  }).join("");
+  document.getElementById("radioBar").innerHTML=html;
+}
+
+function setAM(am){
+  selAM=am; selRow=null; selPipe=null;
+  renderTable(); closePortlet(); renderPipeline(); closePipePortlet();
+}
+
+function renderTable(){
+  var ams=selAM==="Overall"?D.am_labels:[selAM];
+  var rows=ams.map(function(am){
+    var tgt=D.targets[am]||0,act=D.actual_2026[am]||0;
+    var a=tgt?act/tgt*100:0,gap=tgt-act,bar=Math.min(a,100);
+    var col=a>=100?"green":a>=70?"":"red";
+    return '<tr onclick="showPortlet(\''+am+'\')" title="Click to see accounts">'+
+      '<td class="name-cell">'+am+'</td>'+
+      '<td>'+fmt(tgt)+'</td>'+
+      '<td>'+fmt(act)+'</td>'+
+      '<td><span style="color:'+(a>=100?"#34d399":a>=70?"#60a5fa":"#f87171")+'">'+a.toFixed(1)+'%</span>'+
+        '<div class="pct-bar"><div class="pct-fill '+col+'" style="width:'+bar+'%"></div></div></td>'+
+      '<td style="color:'+(gap<=0?"#34d399":"#f87171")+'">'+fmt(gap)+'</td>'+
+    '</tr>';
+  }).join("");
+  document.getElementById("amTableWrap").innerHTML=
+    '<table><thead><tr><th>Account Manager</th><th>Target 2026</th><th>Actual 2026</th>'+
+    '<th>Achievement %</th><th>Gap to Target</th></tr></thead><tbody>'+rows+'</tbody></table>';
+}
+
+function showPortlet(am){
+  if(selRow===am){closePortlet();return;}
+  selRow=am;
+  var accs=D.accounts_2026[am]||[];
+  var content;
+  if(accs.length===0){
+    content='<p style="color:#7a9bb5;font-size:13px">No 2026 bookings recorded.</p>';
+  } else {
+    var total=accs.reduce(function(s,r){return s+r.amount;},0);
+    var rows=accs.map(function(r){
+      return '<tr><td>'+r.customer+'</td><td style="text-align:right">'+fmt(r.amount)+'</td></tr>';
+    }).join("");
+    content='<table><thead><tr><th>Customer</th><th style="text-align:right">Amount Booked</th></tr></thead>'+
+      '<tbody>'+rows+'<tr class="total-row"><td>Total</td><td style="text-align:right">'+fmt(total)+'</td></tr></tbody></table>';
+  }
+  var p=document.getElementById("portlet");
+  p.className="portlet active";
+  p.innerHTML='<h3>'+am+' &mdash; 2026 Account Bookings</h3>'+content;
+}
+function closePortlet(){selRow=null;var p=document.getElementById("portlet");p.className="portlet";p.innerHTML="";}
+
+function renderPipeline(){
+  // Show only selected AM's card; Overall shows all 5
+  var ams=selAM==="Overall"?D.am_labels:[selAM];
+  var colCls=ams.length===1?"cols-1":"cols-5";
+  var html=ams.map(function(am){
+    var p=D.pipeline[am]||{};
+    var v40=p["40%"]||0,v50=p["50%"]||0,v80=p["80%"]||0;
+    var maxV=Math.max(v40,v50,v80,1);
+    return '<div class="pipe-card">'+
+      '<div class="am-name">'+am+'</div>'+
+      pipeRow(am,"40%",v40,maxV)+
+      pipeRow(am,"50%",v50,maxV)+
+      pipeRow(am,"80%",v80,maxV)+
+    '</div>';
+  }).join("");
+  var el=document.getElementById("pipeline");
+  el.className="pipeline "+colCls;
+  el.innerHTML=html;
+}
+
+function pipeRow(am,sc,val,maxV){
+  var clsMap={"40%":"p40","50%":"p50","80%":"p80"};
+  var w=maxV?Math.round(val/maxV*100):0;
+  var isActive=selPipe&&selPipe.am===am&&selPipe.pct===sc?"active-lbl":"";
+  return '<div class="pipe-row">'+
+    '<div class="pipe-lbl '+isActive+'" onclick="showPipeDetail(\''+am+'\',\''+sc+'\')">'+
+      '<span>'+sc+' Win</span><span>'+fmt(val)+'</span>'+
+    '</div>'+
+    '<div class="pipe-bar"><div class="pipe-fill '+clsMap[sc]+'" style="width:'+w+'%"></div></div>'+
+  '</div>';
+}
+
+function showPipeDetail(am,sc){
+  if(selPipe&&selPipe.am===am&&selPipe.pct===sc){closePipePortlet();return;}
+  selPipe={am:am,pct:sc};
+  renderPipeline();
+  var detail=(D.pipeline_detail[am]||{})[sc]||[];
+  var badgeCls={"40%":"badge-40","50%":"badge-50","80%":"badge-80"};
+  var pp=document.getElementById("pipePortlet");
+  pp.className="pipe-portlet active";
+  if(detail.length===0){
+    pp.innerHTML='<h3>'+am+' <span class="badge '+badgeCls[sc]+'">'+sc+'</span></h3>'+
+      '<p style="color:#7a9bb5;font-size:13px">No opportunities at this stage.</p>';
+    return;
+  }
+  var total=detail.reduce(function(s,r){return s+r.amount;},0);
+  var rows=detail.map(function(r){
+    return '<tr><td>'+r.customer+'</td><td style="text-align:right">'+fmt(r.amount)+'</td></tr>';
+  }).join("");
+  pp.innerHTML='<h3>'+am+' <span class="badge '+badgeCls[sc]+'">'+sc+' Win Opportunities</span></h3>'+
+    '<table><thead><tr><th>Customer</th><th style="text-align:right">Proposal Value</th></tr></thead>'+
+    '<tbody>'+rows+
+    '<tr class="total-row"><td>Total Pipeline</td><td style="text-align:right">'+fmt(total)+'</td></tr>'+
+    '</tbody></table>';
+}
+function closePipePortlet(){
+  selPipe=null; renderPipeline();
+  var pp=document.getElementById("pipePortlet");
+  pp.className="pipe-portlet"; pp.innerHTML="";
+}
+
+function refreshData(){
+  var btn=document.querySelector(".btn-refresh");
+  btn.textContent="Refreshing\u2026"; btn.disabled=true;
+  fetch("/api/refresh",{method:"POST"})
+    .then(function(r){return r.json();})
+    .then(function(){return fetch("/api/data").then(function(r){return r.json();});})
+    .then(function(newData){D=newData;renderAll();btn.textContent="\u21BB Refresh Data";btn.disabled=false;})
+    .catch(function(){btn.textContent="\u21BB Refresh Data";btn.disabled=false;});
+}
+
+renderAll();
+</script>
+</body>
+</html>
